@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* CORES DO CLIENTE - MUDE AQUI */
+  --primary: #E63946;
+  /* Cor Principal */
+  --secondary: #FFB703;
+  /* Cor Secundária */
+  --accent: #FB8500;
+  /* Cor de Destaque */
+
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
+  --card: #FFFFFF;
+  --card-foreground: #020617;
+  --primary-foreground: #FFFFFF;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-primary-foreground: var(--primary-foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+
+/* Estilos para o recibo na tela (Oculto) */
+#printable-area {
+  display: none !important;
+}
+
+@media print {
+
+  /* Esconder elementos com a classe .no-print */
+  .no-print,
+  nav,
+  aside,
+  header,
+  footer,
+  button {
+    display: none !important;
+  }
+
+  /* Reset total do body para impressão */
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  /* Forçar exibição do recibo */
+  #printable-area {
+    display: block !important;
+    visibility: visible !important;
+    width: 78mm !important;
+    margin: 0 !important;
+    padding: 4mm !important;
+    background: white !important;
+    color: black !important;
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    position: relative !important;
+  }
+
+  /* Garantir que todos os componentes internos apareçam */
+  #printable-area * {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Layout flexível para preços/quantidades */
+  #printable-area .flex {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+  }
+
+  #printable-area span {
+    display: inline !important;
+  }
+
+  /* Configuração de página para impressora térmica */
+  @page {
+    size: 78mm auto;
+    margin: 0;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui;
+  -webkit-font-smoothing: antialiased;
+}

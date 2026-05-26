@@ -49,12 +49,23 @@ export default function AdminDashboard() {
     const fetchOrders = (isPolling = false) => {
         if (!isPolling) setLoading(true);
         fetch('/api/data')
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) throw new Error("Erro do servidor");
+                return res.json();
+            })
             .then(json => {
                 setData(json);
+                localStorage.setItem('duo_burger_backup', JSON.stringify(json));
                 if (!isPolling) setLoading(false);
             })
-            .catch(() => {
+            .catch((err) => {
+                console.warn("Offline: Tentando carregar backup local...", err);
+                if (!data) { // Só carrega backup se não houver dados na tela ainda
+                    const backup = localStorage.getItem('duo_burger_backup');
+                    if (backup) {
+                        try { setData(JSON.parse(backup)); } catch(e){}
+                    }
+                }
                 if (!isPolling) setLoading(false);
             });
     };
@@ -2347,6 +2358,11 @@ export default function AdminDashboard() {
 // Função auxiliar para salvar dados
 async function saveData(data: any) {
     try {
+        // Salva localmente sempre como garantia de offline
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('duo_burger_backup', JSON.stringify(data));
+        }
+
         const res = await fetch('/api/data', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2355,12 +2371,12 @@ async function saveData(data: any) {
 
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Falha ao salvar');
+            throw new Error(errorData.error || 'Falha ao salvar no servidor');
         }
 
-        return { success: true, message: 'Dados salvos com sucesso!' };
+        return { success: true, message: 'Dados salvos com sucesso na nuvem!' };
     } catch (error: any) {
         console.error('Erro ao salvar:', error);
-        return { success: false, message: error.message || 'Erro ao salvar dados' };
+        return { success: true, message: 'Modo Offline: Dados salvos localmente no navegador!' };
     }
 }

@@ -5,6 +5,8 @@ import { Save, Plus, Trash2, LayoutDashboard, Utensils, Settings, LogOut, Chevro
 import { cn } from '../lib/utils';
 import { Product, Category, StoreConfig } from '../lib/data';
 import { BRANDING } from '../lib/branding';
+import { supabase } from '../lib/supabase';
+import { compressImage } from '../lib/imageUtils';
 
 export default function AdminDashboard() {
     const [data, setData] = useState<any>(null);
@@ -239,27 +241,48 @@ export default function AdminDashboard() {
     };
 
     const handleImageUpload = async (file: File, path: string, callback: (url: string) => void) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        setUploading(path); // Mostra estado de carregando
+        setUploading(path);
 
         try {
-            const res = await fetch('/api/upload', { method: 'POST', body: formData });
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Falha no upload');
+            if (!supabase) {
+                throw new Error('Supabase não configurado. Verifique as variáveis de ambiente.');
             }
 
-            const result = await res.json();
-            callback(result.url);
+            // 1. Comprimir imagem no navegador (reduz para ~200-500KB)
+            showFeedback('success', 'Comprimindo imagem...');
+            const compressedFile = await compressImage(file);
+            console.log(`📦 Upload: ${(compressedFile.size / 1024).toFixed(0)}KB`);
+
+            // 2. Upload DIRETO para o Supabase Storage (bucket: produtos)
+            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const filePath = `uploads/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('produtos')
+                .upload(filePath, compressedFile, {
+                    contentType: compressedFile.type || 'image/jpeg',
+                    upsert: true
+                });
+
+            if (uploadError) {
+                console.error('Erro Supabase Storage:', uploadError);
+                throw new Error(uploadError.message || 'Falha no upload para o Supabase');
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('produtos')
+                .getPublicUrl(filePath);
+
+            console.log('✅ Upload direto Supabase:', publicUrl);
+            callback(publicUrl);
             showFeedback('success', 'Imagem enviada com sucesso!');
         } catch (error: any) {
+            console.error('❌ Upload falhou:', error);
             showFeedback('error', `Erro: ${error.message}`);
-            alert(`Aviso: ${error.message}\n\nDica: Copie o link da imagem e cole direto no campo de texto.`);
+            alert(`Aviso: Falha no upload\n\n${error.message}\n\nDica: Tente uma imagem menor ou cole o link da imagem direto no campo de texto.`);
         } finally {
-            setUploading(null); // Remove estado de carregando
+            setUploading(null);
         }
     };
 

@@ -47,6 +47,29 @@ export default function AdminDashboard() {
     };
 
     const fetchOrders = (isPolling = false) => {
+        // Se temos dados offline pendentes, tenta sincronizar com o servidor primeiro!
+        if (typeof window !== 'undefined' && localStorage.getItem('duo_burger_offline_pending') === 'true') {
+            const backup = localStorage.getItem('duo_burger_backup');
+            if (backup) {
+                console.log("Sincronizando dados offline pendentes com a nuvem...");
+                fetch('/api/data', { 
+                    method: 'POST', 
+                    headers: {'Content-Type': 'application/json'}, 
+                    body: backup 
+                })
+                .then(res => {
+                    if (res.ok) {
+                        localStorage.removeItem('duo_burger_offline_pending');
+                        showFeedback('success', 'Dados offline sincronizados com a nuvem!');
+                    }
+                }).catch(() => {
+                    console.warn("Ainda offline, não foi possível sincronizar.");
+                });
+            }
+            // Não tenta puxar dados do servidor enquanto não sincronizar as alterações offline
+            return;
+        }
+
         if (!isPolling) setLoading(true);
         fetch('/api/data')
             .then(res => {
@@ -2363,10 +2386,19 @@ async function saveData(data: any) {
             const errorData = await res.json().catch(() => ({}));
             throw new Error(errorData.error || 'Falha ao salvar no servidor');
         }
+        
+        // Se salvou na nuvem, limpa flag de pendência
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('duo_burger_offline_pending');
+        }
 
         return { success: true, message: 'Dados salvos com sucesso na nuvem!' };
     } catch (error: any) {
         console.error('Erro ao salvar:', error);
+        // Marca que existem dados offline que precisam ir pra nuvem depois
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('duo_burger_offline_pending', 'true');
+        }
         return { success: true, message: 'Modo Offline: Dados salvos localmente no navegador!' };
     }
 }

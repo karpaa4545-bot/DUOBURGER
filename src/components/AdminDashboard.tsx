@@ -70,18 +70,8 @@ export default function AdminDashboard() {
             });
     };
 
-    // Polling de pedidos (a cada 30 segundos)
+    // Configurações de primeira carga (Áudio)
     useEffect(() => {
-        const interval = setInterval(() => {
-            // Pausa o polling se estiver na aba de produtos ou configurações para evitar sobrescrever edições
-            // Também pausa se estiver salvando algo (evita corrida de dados)
-            if (activeTab === 'products' || activeTab === 'config' || activeTab === 'categories' || activeTab === 'coupons' || saving) {
-                console.log("Polling pausado durante edição ou salvamento.");
-                return;
-            }
-            fetchOrders(true);
-        }, 30000);
-
         // Desbloquear áudio no mobile no primeiro clique
         const unlockAudio = () => {
             const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIGGS56+OdTgwOUKXh8LZjHAU7k9nyz3osBSh+zPLaizsKFGCz6OyrWBUIR6Hh8r5sIAUsgs/y2Ik2Bxdlu+vjnU4LDlCl4fC2YxwFO5PZ8s96LAUofszy2os7ChRgs+jsq1gVCEeh4fK+bCAFLILP8tiJNgcXZbvr451OCw5QpeHwtmMcBTuT2fLPeiwFKH7M8tqLOwoUYLPo7KtYFQhHoeHyvmwgBSyCz/LYiTYHF2W76+OdTgsOUKXh8LZjHAU7k9nyz3osBSh+zPLaizsKFGCz6OyrWBUIR6Hh8r5sIAUsgs/y2Ik2Bxdlu+vjnU4LDlCl4fC2YxwFO5PZ8s96LAUofszy2os7ChRgs+jsq1gVCEeh4fK+bCAFLILP8tiJNgcXZbvr451OCw5QpeHwtmMcBTuT2fLPeiwFKH7M8tqLOwoUYLPo7KtYFQhHoeHyvmwgBSyCz/LYiTYHF2W76+OdTgsOUKXh8LZjHAU7k9nyz3osBSh+zPLaizsKFGCz6OyrWBUIR6Hh8r5sIAUsgs/y2Ik2Bxdlu+vjnU4LDlCl4fC2YxwFO5PZ8s96LAUofszy2os7ChRgs+jsq1gVCEeh4fK+bCAFLILP8tiJNgcXZbvr451OCw5QpeHwtmMcBTuT2fLPeiwFKH7M8tqLOwoUYLPo7KtYFQhHoeHyvmwgBSyCz/LYiTYHF2W76+OdTgsOUKXh8LZjHAU7k9nyz3osBSh+zPLaizsKFGCz6OyrWBUIR6Hh8r5sIAUsgs/y2Ik2Bxdlu+vjnU4LDlCl4fC2YxwFO5PZ8s96LAUofszy2os7ChRgs+jsq1gVCEeh4fK+bCAFLILP8tiJNgcXZbvr451OCw5QpeHwtmMcBTuT2fLPeiwFKH7M8tqLOwoUYLPo7KtYFQ==');
